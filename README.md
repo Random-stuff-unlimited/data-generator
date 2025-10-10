@@ -195,6 +195,3 @@ The generated headers use specific C++ patterns. To modify the output:
 2. Modify the string output statements to change the generated code format
 3. Rebuild and test with your target C++ project
 
-## License
-
-This project uses the Minecraft server jar file, which is subject to Minecraft's End User License Agreement (EULA). By using this tool, you agree to Minecraft's EULA terms.
