@@ -1,10 +1,12 @@
 #pragma once
 
+#include <algorithm>
 #include <filesystem>
 #include <fstream>
 #include <json.hpp>
 #include <string>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 using json = nlohmann::json;
@@ -19,16 +21,6 @@ struct Registry {
 	int						   protocol_id = 0;
 };
 
-struct Tag {
-	std::string				 name;
-	std::vector<std::string> values;
-};
-
-struct TagCategory {
-	std::string		 categoryName;
-	std::vector<Tag> tags;
-};
-
 class DataGenerator {
   private:
 	std::string outputDirectory;
@@ -36,11 +28,7 @@ class DataGenerator {
 	void ensureOutputDirectory();
 	void generateRegistryHeader(const std::unordered_map<std::string, Registry>& registries);
 	void writeHelperFunctions(std::ofstream& out);
-	void addVariantRegistries(std::unordered_map<std::string, Registry>& registries);
-	void parseTagsDirectory();
-	void parseTagsInDirectory(const std::filesystem::path& dirPath, TagCategory& category, const std::string& prefix);
-	void generateTagsHeader(const std::vector<TagCategory>& tagCategories);
-	void writeTagHelperFunctions(std::ofstream& out);
+	void addVariantRegistries(std::unordered_map<std::string, Registry>& registries, const std::unordered_set<std::string>& includedRegistries);
 
   public:
 	DataGenerator(const std::string& outputDir);
