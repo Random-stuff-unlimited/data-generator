@@ -36,6 +36,7 @@ class DataGenerator {
 	void ensureOutputDirectory();
 	void generateRegistryHeader(const std::unordered_map<std::string, Registry>& registries);
 	void writeHelperFunctions(std::ofstream& out);
+	void addVariantRegistries(std::unordered_map<std::string, Registry>& registries);
 	void parseTagsDirectory();
 	void parseTagsInDirectory(const std::filesystem::path& dirPath, TagCategory& category, const std::string& prefix);
 	void generateTagsHeader(const std::vector<TagCategory>& tagCategories);

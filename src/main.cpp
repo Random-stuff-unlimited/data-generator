@@ -71,11 +71,52 @@ void DataGenerator::generateAll() {
 		registries[registryName] = registry;
 	}
 
+	// Add variant registries from data/minecraft folders
+	addVariantRegistries(registries);
+
 	// Generate the header file
 	generateRegistryHeader(registries);
 
 	// Parse and generate tags
 	parseTagsDirectory();
+}
+
+void DataGenerator::addVariantRegistries(std::unordered_map<std::string, Registry>& registries) {
+	std::string dataPath = "generated/data/minecraft";
+
+	try {
+		for (const auto& entry : std::filesystem::directory_iterator(dataPath)) {
+			if (!entry.is_directory()) continue;
+
+			std::string folderName = entry.path().filename().string();
+
+			// Check if folder name ends with "_variant"
+			if (folderName.length() > 8 && folderName.substr(folderName.length() - 8) == "_variant") {
+				Registry registry;
+				registry.protocol_id = 0; // Default protocol_id for variant registries
+
+				// Scan for JSON files in this variant folder
+				int entryProtocolId = 0;
+				for (const auto& jsonEntry : std::filesystem::directory_iterator(entry.path())) {
+					if (jsonEntry.is_regular_file() && jsonEntry.path().extension() == ".json") {
+						RegistryEntry registryEntry;
+						registryEntry.name		  = jsonEntry.path().stem().string();
+						registryEntry.protocol_id = entryProtocolId++;
+						registry.entries.push_back(registryEntry);
+					}
+				}
+
+				// Only add registry if it has entries
+				if (!registry.entries.empty()) {
+					std::string registryName = "minecraft:" + folderName;
+					registries[registryName] = registry;
+					std::cout << "Added variant registry: " << registryName << " with " << registry.entries.size() << " entries\n";
+				}
+			}
+		}
+	} catch (const std::exception& e) {
+		std::cerr << "Warning: Failed to scan variant folders: " << e.what() << "\n";
+	}
 }
 
 void DataGenerator::generateRegistryHeader(const std::unordered_map<std::string, Registry>& registries) {

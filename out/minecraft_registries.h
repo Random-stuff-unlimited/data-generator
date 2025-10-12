@@ -14,6 +14,48 @@ struct Registry {
 };
 
 const std::unordered_map<std::string, Registry> MINECRAFT_REGISTRIES = {
+    {"minecraft:wolf_sound_variant", {
+        {
+            {"angry", 0},
+            {"grumpy", 1},
+            {"classic", 2},
+            {"big", 3},
+            {"puglin", 4},
+            {"cute", 5},
+            {"sad", 6}
+        },
+        0
+    }},
+    {"minecraft:cat_variant", {
+        {
+            {"white", 0},
+            {"siamese", 1},
+            {"tabby", 2},
+            {"ragdoll", 3},
+            {"black", 4},
+            {"all_black", 5},
+            {"persian", 6},
+            {"calico", 7},
+            {"british_shorthair", 8},
+            {"jellie", 9},
+            {"red", 10}
+        },
+        0
+    }},
+    {"minecraft:wolf_variant", {
+        {
+            {"ashen", 0},
+            {"pale", 1},
+            {"snowy", 2},
+            {"chestnut", 3},
+            {"black", 4},
+            {"spotted", 5},
+            {"rusty", 6},
+            {"woods", 7},
+            {"striped", 8}
+        },
+        0
+    }},
     {"minecraft:worldgen/trunk_placer_type", {
         {
             {"minecraft:bending_trunk_placer", 6},
@@ -171,6 +213,14 @@ const std::unordered_map<std::string, Registry> MINECRAFT_REGISTRIES = {
             {"minecraft:spruce_foliage_placer", 1}
         },
         46
+    }},
+    {"minecraft:frog_variant", {
+        {
+            {"temperate", 0},
+            {"warm", 1},
+            {"cold", 2}
+        },
+        0
     }},
     {"minecraft:worldgen/root_placer_type", {
         {
@@ -370,6 +420,14 @@ const std::unordered_map<std::string, Registry> MINECRAFT_REGISTRIES = {
             {"minecraft:weaponsmith", 12}
         },
         24
+    }},
+    {"minecraft:cow_variant", {
+        {
+            {"temperate", 0},
+            {"warm", 1},
+            {"cold", 2}
+        },
+        0
     }},
     {"minecraft:fluid", {
         {
@@ -853,6 +911,14 @@ const std::unordered_map<std::string, Registry> MINECRAFT_REGISTRIES = {
             {"minecraft:water_movement_efficiency", 31}
         },
         18
+    }},
+    {"minecraft:pig_variant", {
+        {
+            {"temperate", 0},
+            {"warm", 1},
+            {"cold", 2}
+        },
+        0
     }},
     {"minecraft:loot_nbt_provider_type", {
         {
@@ -3641,6 +3707,14 @@ const std::unordered_map<std::string, Registry> MINECRAFT_REGISTRIES = {
         },
         61
     }},
+    {"minecraft:chicken_variant", {
+        {
+            {"temperate", 0},
+            {"warm", 1},
+            {"cold", 2}
+        },
+        0
+    }},
     {"minecraft:worldgen/carver", {
         {
             {"minecraft:canyon", 2},
@@ -3658,6 +3732,61 @@ const std::unordered_map<std::string, Registry> MINECRAFT_REGISTRIES = {
             {"minecraft:lookup", 4}
         },
         69
+    }},
+    {"minecraft:painting_variant", {
+        {
+            {"sunset", 0},
+            {"prairie_ride", 1},
+            {"wasteland", 2},
+            {"stage", 3},
+            {"wanderer", 4},
+            {"fighters", 5},
+            {"unpacked", 6},
+            {"kebab", 7},
+            {"courbet", 8},
+            {"orb", 9},
+            {"pointer", 10},
+            {"pigscene", 11},
+            {"cotan", 12},
+            {"fire", 13},
+            {"aztec2", 14},
+            {"sunflowers", 15},
+            {"meditative", 16},
+            {"void", 17},
+            {"alban", 18},
+            {"finding", 19},
+            {"passage", 20},
+            {"owlemons", 21},
+            {"earth", 22},
+            {"match", 23},
+            {"wind", 24},
+            {"plant", 25},
+            {"tides", 26},
+            {"cavebird", 27},
+            {"lowmist", 28},
+            {"backyard", 29},
+            {"humble", 30},
+            {"wither", 31},
+            {"sea", 32},
+            {"fern", 33},
+            {"changing", 34},
+            {"graham", 35},
+            {"burning_skull", 36},
+            {"bouquet", 37},
+            {"creebet", 38},
+            {"baroque", 39},
+            {"endboss", 40},
+            {"pool", 41},
+            {"donkey_kong", 42},
+            {"pond", 43},
+            {"skull_and_roses", 44},
+            {"aztec", 45},
+            {"skeleton", 46},
+            {"bust", 47},
+            {"bomb", 48},
+            {"water", 49}
+        },
+        0
     }},
     {"minecraft:recipe_display", {
         {
