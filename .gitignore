@@ -4,3 +4,8 @@
 **/versions
 **/obj
 **/bin
+compile_commands.json
+**/build
+**/out
+.cache
+.deps
