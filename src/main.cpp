@@ -9,6 +9,7 @@
 #include <stdexcept>
 #include <string>
 #include <unordered_map>
+#include <unordered_set>
 
 DataGenerator::DataGenerator(const std::string& outputDir) : outputDirectory(outputDir) { ensureOutputDirectory(); }
 
@@ -72,6 +73,9 @@ void DataGenerator::generateAll() {
 
 	// Generate the header file
 	generateRegistryHeader(registries);
+
+	// Parse and generate tags
+	parseTagsDirectory();
 }
 
 void DataGenerator::generateRegistryHeader(const std::unordered_map<std::string, Registry>& registries) {
@@ -159,6 +163,218 @@ void DataGenerator::writeHelperFunctions(std::ofstream& out) {
 
 	out << "inline size_t getRegistryCount() {\n";
 	out << "    return MINECRAFT_REGISTRIES.size();\n";
+	out << "}\n";
+}
+
+void DataGenerator::parseTagsDirectory() {
+	std::vector<TagCategory> tagCategories;
+	std::string				 tagsPath = "generated/data/minecraft/tags";
+
+	// Excluded categories as specified by user
+	std::unordered_set<std::string> excludedCategories = {"block", "item", "fluid", "entity_type", "game_event"};
+
+	try {
+		for (const auto& categoryEntry : std::filesystem::directory_iterator(tagsPath)) {
+			if (!categoryEntry.is_directory()) continue;
+
+			std::string categoryName = categoryEntry.path().filename().string();
+
+			// Skip excluded categories
+			if (excludedCategories.find(categoryName) != excludedCategories.end()) {
+				continue;
+			}
+
+			TagCategory category;
+			category.categoryName = categoryName;
+
+			// Recursively parse all tag files in this category
+			parseTagsInDirectory(categoryEntry.path(), category, "");
+
+			if (!category.tags.empty()) {
+				tagCategories.push_back(category);
+			}
+		}
+
+		generateTagsHeader(tagCategories);
+
+	} catch (const std::exception& e) {
+		throw std::runtime_error("Failed to parse tags directory: " + std::string(e.what()));
+	}
+}
+
+void DataGenerator::parseTagsInDirectory(const std::filesystem::path& dirPath, TagCategory& category, const std::string& prefix) {
+	for (const auto& entry : std::filesystem::directory_iterator(dirPath)) {
+		if (entry.is_directory()) {
+			// Recursively parse subdirectory
+			std::string newPrefix = prefix.empty() ? entry.path().filename().string() : prefix + "/" + entry.path().filename().string();
+			parseTagsInDirectory(entry.path(), category, newPrefix);
+		} else if (entry.is_regular_file() && entry.path().extension() == ".json") {
+			// Parse tag file
+			try {
+				json tagJson = loadJsonFile(entry.path().string());
+
+				if (tagJson.contains("values") && tagJson["values"].is_array()) {
+					Tag tag;
+					tag.name = prefix.empty() ? entry.path().stem().string() : prefix + "/" + entry.path().stem().string();
+
+					for (const auto& value : tagJson["values"]) {
+						if (value.is_string()) {
+							tag.values.push_back(value.get<std::string>());
+						}
+					}
+
+					category.tags.push_back(tag);
+				}
+			} catch (const std::exception& e) {
+				std::cerr << "Warning: Failed to parse tag file " << entry.path() << ": " << e.what() << "\n";
+			}
+		}
+	}
+}
+
+void DataGenerator::generateTagsHeader(const std::vector<TagCategory>& tagCategories) {
+	std::string	  headerPath = outputDirectory + "/minecraftTags.hpp";
+	std::ofstream out(headerPath);
+
+	if (!out.is_open()) {
+		throw std::runtime_error("Failed to create header file: " + headerPath);
+	}
+
+	// Write header
+	out << "#pragma once\n";
+	out << "#include <unordered_map>\n";
+	out << "#include <vector>\n";
+	out << "#include <string>\n";
+	out << "#include <unordered_set>\n\n";
+
+	// Write structures
+	out << "struct MinecraftTag {\n";
+	out << "    std::string name;\n";
+	out << "    std::vector<std::string> values;\n";
+	out << "};\n\n";
+
+	out << "struct MinecraftTagCategory {\n";
+	out << "    std::string categoryName;\n";
+	out << "    std::vector<MinecraftTag> tags;\n";
+	out << "};\n\n";
+
+	// Write the main data structure
+	out << "const std::vector<MinecraftTagCategory> MINECRAFT_TAGS = {\n";
+
+	for (size_t i = 0; i < tagCategories.size(); ++i) {
+		const auto& category = tagCategories[i];
+		out << "    {\n";
+		out << "        \"" << category.categoryName << "\",\n";
+		out << "        {\n";
+
+		for (size_t j = 0; j < category.tags.size(); ++j) {
+			const auto& tag = category.tags[j];
+			out << "            {\n";
+			out << "                \"" << tag.name << "\",\n";
+			out << "                {\n";
+
+			for (size_t k = 0; k < tag.values.size(); ++k) {
+				out << "                    \"" << tag.values[k] << "\"";
+				if (k < tag.values.size() - 1) out << ",";
+				out << "\n";
+			}
+
+			out << "                }\n";
+			out << "            }";
+			if (j < category.tags.size() - 1) out << ",";
+			out << "\n";
+		}
+
+		out << "        }\n";
+		out << "    }";
+		if (i < tagCategories.size() - 1) out << ",";
+		out << "\n";
+	}
+
+	out << "};\n\n";
+
+	// Write helper functions
+	writeTagHelperFunctions(out);
+
+	out.close();
+
+	size_t totalTags = 0;
+	for (const auto& category : tagCategories) {
+		totalTags += category.tags.size();
+	}
+
+	std::cout << "Generated " << headerPath << " with " << tagCategories.size() << " categories and " << totalTags << " tags\n";
+}
+
+void DataGenerator::writeTagHelperFunctions(std::ofstream& out) {
+	out << "// Helper functions for Minecraft tags\n";
+
+	// Function to get a specific tag category
+	out << "inline const MinecraftTagCategory* getTagCategory(const std::string& categoryName) {\n";
+	out << "    for (const auto& category : MINECRAFT_TAGS) {\n";
+	out << "        if (category.categoryName == categoryName) {\n";
+	out << "            return &category;\n";
+	out << "        }\n";
+	out << "    }\n";
+	out << "    return nullptr;\n";
+	out << "}\n\n";
+
+	// Function to get a specific tag
+	out << "inline const MinecraftTag* getTag(const std::string& categoryName, const std::string& tagName) {\n";
+	out << "    const MinecraftTagCategory* category = getTagCategory(categoryName);\n";
+	out << "    if (!category) return nullptr;\n";
+	out << "    \n";
+	out << "    for (const auto& tag : category->tags) {\n";
+	out << "        if (tag.name == tagName) {\n";
+	out << "            return &tag;\n";
+	out << "        }\n";
+	out << "    }\n";
+	out << "    return nullptr;\n";
+	out << "}\n\n";
+
+	// Function to check if an item is in a tag
+	out << "inline bool isInTag(const std::string& categoryName, const std::string& tagName, const std::string& item) {\n";
+	out << "    const MinecraftTag* tag = getTag(categoryName, tagName);\n";
+	out << "    if (!tag) return false;\n";
+	out << "    \n";
+	out << "    for (const auto& value : tag->values) {\n";
+	out << "        if (value == item) return true;\n";
+	out << "    }\n";
+	out << "    return false;\n";
+	out << "}\n\n";
+
+	// Function to get all category names
+	out << "inline std::vector<std::string> getTagCategoryNames() {\n";
+	out << "    std::vector<std::string> names;\n";
+	out << "    for (const auto& category : MINECRAFT_TAGS) {\n";
+	out << "        names.push_back(category.categoryName);\n";
+	out << "    }\n";
+	out << "    return names;\n";
+	out << "}\n\n";
+
+	// Function to get all tag names in a category
+	out << "inline std::vector<std::string> getTagNames(const std::string& categoryName) {\n";
+	out << "    std::vector<std::string> names;\n";
+	out << "    const MinecraftTagCategory* category = getTagCategory(categoryName);\n";
+	out << "    if (category) {\n";
+	out << "        for (const auto& tag : category->tags) {\n";
+	out << "            names.push_back(tag.name);\n";
+	out << "        }\n";
+	out << "    }\n";
+	out << "    return names;\n";
+	out << "}\n\n";
+
+	// Function to get total count of categories and tags
+	out << "inline size_t getTagCategoryCount() {\n";
+	out << "    return MINECRAFT_TAGS.size();\n";
+	out << "}\n\n";
+
+	out << "inline size_t getTotalTagCount() {\n";
+	out << "    size_t count = 0;\n";
+	out << "    for (const auto& category : MINECRAFT_TAGS) {\n";
+	out << "        count += category.tags.size();\n";
+	out << "    }\n";
+	out << "    return count;\n";
 	out << "}\n";
 }
 
