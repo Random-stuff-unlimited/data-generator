@@ -26,9 +26,14 @@ class DataGenerator {
 	std::string outputDirectory;
 
 	void ensureOutputDirectory();
+
 	void generateRegistryHeader(const std::unordered_map<std::string, Registry>& registries);
+
 	void writeHelperFunctions(std::ofstream& out);
+
 	void addVariantRegistries(std::unordered_map<std::string, Registry>& registries, const std::unordered_set<std::string>& includedRegistries);
+	void addWorldgenBiomeRegistry(std::unordered_map<std::string, Registry>& registries);
+	void normalizeRegistryEntries(std::unordered_map<std::string, Registry>& registries);
 
   public:
 	DataGenerator(const std::string& outputDir);

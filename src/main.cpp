@@ -86,9 +86,17 @@ void DataGenerator::generateAll() {
 	}
 
 	// Add variant registries from data/minecraft folders
+
 	addVariantRegistries(filteredRegistries, includedRegistries);
 
+	// Add worldgen biome registry (nested path)
+
+	addWorldgenBiomeRegistry(filteredRegistries);
+	// Normalize entry names (prefix minecraft: if missing)
+	normalizeRegistryEntries(filteredRegistries);
+
 	// Generate the header file
+
 	generateRegistryHeader(filteredRegistries);
 
 	std::cout << "Generated " << filteredRegistries.size() << " registries total\n";
@@ -128,8 +136,50 @@ void DataGenerator::addVariantRegistries(std::unordered_map<std::string, Registr
 				std::cout << "Added variant registry: " << registryName << " with " << registry.entries.size() << " entries\n";
 			}
 		}
+
 	} catch (const std::exception& e) {
+
 		std::cerr << "Warning: Failed to scan variant folders: " << e.what() << "\n";
+	}
+}
+
+void DataGenerator::addWorldgenBiomeRegistry(std::unordered_map<std::string, Registry>& registries) {
+	std::string biomePath = "generated/data/minecraft/worldgen/biome";
+	if (!std::filesystem::exists(biomePath) || !std::filesystem::is_directory(biomePath)) {
+		std::cerr << "Warning: biome path not found: " << biomePath << "\n";
+		return;
+	}
+
+	Registry registry;
+	registry.protocol_id = 0;
+	int protocolId		 = 0;
+
+	try {
+		for (const auto& file : std::filesystem::directory_iterator(biomePath)) {
+			if (file.is_regular_file() && file.path().extension() == ".json") {
+				RegistryEntry entry;
+				entry.name		  = file.path().stem().string();
+				entry.protocol_id = protocolId++;
+				registry.entries.push_back(entry);
+			}
+		}
+	} catch (const std::exception& e) {
+		std::cerr << "Warning: Failed to scan biome registry: " << e.what() << "\n";
+	}
+
+	if (!registry.entries.empty()) {
+		registries["minecraft:worldgen/biome"] = registry;
+		std::cout << "Added worldgen biome registry with " << registry.entries.size() << " entries\n";
+	}
+}
+
+void DataGenerator::normalizeRegistryEntries(std::unordered_map<std::string, Registry>& registries) {
+	for (auto& [regName, registry] : registries) {
+		for (auto& entry : registry.entries) {
+			if (entry.name.find(':') == std::string::npos) {
+				entry.name = "minecraft:" + entry.name;
+			}
+		}
 	}
 }
 
