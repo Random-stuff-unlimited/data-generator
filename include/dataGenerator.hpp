@@ -28,10 +28,17 @@ class DataGenerator {
 	void ensureOutputDirectory();
 
 	void generateRegistryHeader(const std::unordered_map<std::string, Registry>& registries);
+	void generateRegistryIdsHeader(const std::unordered_map<std::string, Registry>& registries);
+	void generateMinecraftRegistriesHeader(const std::unordered_map<std::string, Registry>& registries);
+	void generateRegistriesTagsHeader(const std::unordered_map<std::string, Registry>& registries);
+	void processTagsForRegistry(std::ofstream& out, const std::string& tagPath, 
+	                            const std::string& registryName,
+	                            const std::unordered_map<std::string, Registry>& registries);
 
 	void writeHelperFunctions(std::ofstream& out);
 
 	void addVariantRegistries(std::unordered_map<std::string, Registry>& registries, const std::unordered_set<std::string>& includedRegistries);
+	void addDataRegistries(std::unordered_map<std::string, Registry>& registries);
 	void addWorldgenBiomeRegistry(std::unordered_map<std::string, Registry>& registries);
 	void normalizeRegistryEntries(std::unordered_map<std::string, Registry>& registries);
 
